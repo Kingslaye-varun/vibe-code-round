@@ -24,10 +24,11 @@
 - Known issues / TODO carried forward: Frontend UI components (EntryForm, MetricsRow, SubscriptionGrid) to be built in Milestones 2-3.
 
 
-## Milestone 2 — Entry Form — _pending_
-- What was built:
-- Key decisions / deviations from docs:
-- Known issues / TODO carried forward:
+## Milestone 2 — Entry Form — Completed (2026-08-25)
+- What was built: Created `EntryForm.jsx` component with inputs for service name, cost, billing cycle dropdown, and next renewal date picker. Integrated with backend POST API.
+- Key decisions / deviations from docs: Added form field validations and inline error state.
+- Known issues / TODO carried forward: Top metrics row and structured table grid to be built in Milestone 3.
+
 
 ## Milestone 3 — Metrics + Grid — _pending_
 - What was built:
