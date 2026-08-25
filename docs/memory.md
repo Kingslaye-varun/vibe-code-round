@@ -18,10 +18,11 @@
 - Known issues / TODO carried forward: Backend endpoints and full UI to be implemented in subsequent milestones.
 
 
-## Milestone 1 — Backend API & Logic — _pending_
-- What was built:
-- Key decisions / deviations from docs:
-- Known issues / TODO carried forward:
+## Milestone 1 — Backend API & Logic — Completed (2026-08-25)
+- What was built: Implemented `GET /api/subscriptions`, `POST /api/subscriptions`, and `PATCH /api/subscriptions/:id`. Built the Cost Uniformity Engine (yearly / 12) and Date Intersect Calculator (0-7 days renewal flag).
+- Key decisions / deviations from docs: `GET` returns enriched items with computed `monthlyEquivalent`, `daysUntilRenewal`, `isRenewingSoon`, plus top-level `metrics`.
+- Known issues / TODO carried forward: Frontend UI components (EntryForm, MetricsRow, SubscriptionGrid) to be built in Milestones 2-3.
+
 
 ## Milestone 2 — Entry Form — _pending_
 - What was built:
