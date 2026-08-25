@@ -1,10 +1,23 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import EntryForm from './components/EntryForm';
+import MetricsRow from './components/MetricsRow';
+import SubscriptionGrid from './components/SubscriptionGrid';
 
 function App() {
   const [subscriptions, setSubscriptions] = useState([]);
   const [metrics, setMetrics] = useState({ totalMonthlyBurn: 0, upcomingRenewalsCount: 0 });
   const [loading, setLoading] = useState(true);
+
+  // Recalculate metrics locally for instantaneous real-time UI updates
+  const calculateLocalMetrics = useCallback((subsList) => {
+    const activeSubs = subsList.filter(s => s.status === 'active');
+    const totalMonthlyBurn = activeSubs.reduce((sum, s) => sum + (s.monthlyEquivalent || 0), 0);
+    const upcomingRenewalsCount = activeSubs.filter(s => s.isRenewingSoon).length;
+    return {
+      totalMonthlyBurn: Number(totalMonthlyBurn.toFixed(2)),
+      upcomingRenewalsCount,
+    };
+  }, []);
 
   const fetchSubscriptions = async () => {
     try {
@@ -37,50 +50,79 @@ function App() {
     await fetchSubscriptions();
   };
 
+  const handleToggleStatus = async (id) => {
+    // 1. Instant optimistic update on local state ("The Vibe Check")
+    let targetSub = null;
+    const updatedSubs = subscriptions.map((sub) => {
+      if (sub.id === id) {
+        const nextStatus = sub.status === 'active' ? 'paused' : 'active';
+        targetSub = { ...sub, status: nextStatus };
+        return targetSub;
+      }
+      return sub;
+    });
+
+    setSubscriptions(updatedSubs);
+    setMetrics(calculateLocalMetrics(updatedSubs));
+
+    try {
+      // 2. Persist backend PATCH update
+      const res = await fetch(`/api/subscriptions/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: targetSub ? targetSub.status : undefined }),
+      });
+
+      if (!res.ok) {
+        throw new Error('Failed to toggle status');
+      }
+
+      // 3. Sync with canonical server response
+      const updatedItem = await res.json();
+      setSubscriptions((currentSubs) =>
+        currentSubs.map((s) => (s.id === id ? updatedItem : s))
+      );
+      // Re-fetch to ensure metrics parity
+      fetchSubscriptions();
+    } catch (err) {
+      console.error('Error toggling subscription status:', err);
+      // Rollback on failure
+      fetchSubscriptions();
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50/60 p-4 sm:p-6 md:p-10 font-sans text-gray-900">
+    <div className="min-h-screen bg-gray-50/70 p-4 sm:p-6 md:p-10 font-sans text-gray-900 selection:bg-indigo-500 selection:text-white">
       <div className="max-w-5xl mx-auto space-y-8">
         {/* Header */}
-        <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-gray-200 pb-5">
+        <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-200/80 pb-6">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">
-              Subscription Tracker
-            </h1>
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold text-lg shadow-sm">
+                ₹
+              </div>
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">
+                Subscription Tracker
+              </h1>
+            </div>
             <p className="text-sm font-medium text-gray-500 mt-1">
-              Renewal Dashboard & Monthly Cash-Flow Manager
+              Renewal Dashboard & Real-Time Monthly Cash-Flow Manager
             </p>
           </div>
         </header>
 
-        {/* Milestone 2: Entry Form */}
+        {/* Entry Form */}
         <EntryForm onAddSubscription={handleAddSubscription} />
 
-        {/* Temporary Basic List for Milestone 2 Acceptance Verification */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200/80 p-6">
-          <h3 className="text-sm font-bold text-gray-700 mb-4">
-            Active Subscriptions ({subscriptions.length})
-          </h3>
-          {loading ? (
-            <p className="text-xs text-gray-500">Loading subscriptions...</p>
-          ) : subscriptions.length === 0 ? (
-            <p className="text-xs text-gray-500 italic">No subscriptions added yet.</p>
-          ) : (
-            <div className="space-y-2">
-              {subscriptions.map((sub) => (
-                <div
-                  key={sub.id}
-                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg text-xs border border-gray-100"
-                >
-                  <span className="font-semibold text-gray-800">{sub.serviceName}</span>
-                  <span className="text-gray-600">
-                    ₹{sub.cost} ({sub.billingCycle}) → Monthly: ₹{sub.monthlyEquivalent}
-                  </span>
-                  <span className="text-gray-500">Renews: {sub.nextRenewalDate}</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+        {/* Metrics Row */}
+        <MetricsRow metrics={metrics} />
+
+        {/* Subscription Grid */}
+        <SubscriptionGrid
+          subscriptions={subscriptions}
+          onToggleStatus={handleToggleStatus}
+          loading={loading}
+        />
       </div>
     </div>
   );

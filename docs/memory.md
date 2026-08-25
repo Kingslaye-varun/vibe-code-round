@@ -30,15 +30,16 @@
 - Known issues / TODO carried forward: Top metrics row and structured table grid to be built in Milestone 3.
 
 
-## Milestone 3 — Metrics + Grid — _pending_
-- What was built:
-- Key decisions / deviations from docs:
-- Known issues / TODO carried forward:
+## Milestone 3 — Metrics + Grid — Completed (2026-08-25)
+- What was built: Created `MetricsRow.jsx` (Total Monthly Burn Rate & Upcoming Renewals Alert Count) and `SubscriptionGrid.jsx` (table grid with amber "Renewing Soon" badge and row highlight for renewals <= 7 days).
+- Key decisions / deviations from docs: Designed responsive cards and clean table styling with Lucide icons.
+- Known issues / TODO carried forward: Final styling polish in Milestone 5.
 
-## Milestone 4 — Pause/Active Behavior — _pending_
-- What was built:
-- Key decisions / deviations from docs:
-- Known issues / TODO carried forward:
+## Milestone 4 — Pause/Active Behavior — Completed (2026-08-25)
+- What was built: Integrated "Vibe Check" pause/active toggle with optimistic local state updates and backend `PATCH /api/subscriptions/:id` persistence.
+- Key decisions / deviations from docs: Toggling to paused instantly greys out row and excludes monthly cost from top burn rate without record deletion.
+- Known issues / TODO carried forward: Styling polish & Stitch MCP alignment in Milestone 5.
+
 
 ## Milestone 5 — Styling Polish — _pending_
 - What was built:

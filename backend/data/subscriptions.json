@@ -1,1 +1,20 @@
-[]
+[
+  {
+    "id": "1787633650514",
+    "serviceName": "GitHub Copilot",
+    "cost": 2400,
+    "billingCycle": "yearly",
+    "nextRenewalDate": "2026-09-24",
+    "status": "active",
+    "createdAt": "2026-08-25T04:54:10.514Z"
+  },
+  {
+    "id": "1787633650498",
+    "serviceName": "ChatGPT Plus",
+    "cost": 1600,
+    "billingCycle": "monthly",
+    "nextRenewalDate": "2026-08-30",
+    "status": "active",
+    "createdAt": "2026-08-25T04:54:10.498Z"
+  }
+]
