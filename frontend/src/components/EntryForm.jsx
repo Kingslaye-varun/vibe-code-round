@@ -1,13 +1,67 @@
-import React, { useState } from 'react';
-import { PlusCircle, Calendar, DollarSign, Tag, Clock } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { PlusCircle, Calendar as CalendarIcon, Tag, Clock } from 'lucide-react';
+
+// Helper to parse user date input into standard YYYY-MM-DD format
+export function parseFlexibleDate(inputStr) {
+  if (!inputStr) return null;
+  const trimmed = inputStr.trim();
+
+  // Pattern 1: YYYY-MM-DD or YYYY/MM/DD
+  if (/^\d{4}[-/.]\d{1,2}[-/.]\d{1,2}$/.test(trimmed)) {
+    const parts = trimmed.split(/[-/.]/).map((p) => parseInt(p, 10));
+    const [y, m, d] = parts;
+    if (m >= 1 && m <= 12 && d >= 1 && d <= 31) {
+      const dateObj = new Date(y, m - 1, d);
+      if (
+        dateObj.getFullYear() === y &&
+        dateObj.getMonth() === m - 1 &&
+        dateObj.getDate() === d
+      ) {
+        return `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+      }
+    }
+  }
+
+  // Pattern 2: DD/MM/YYYY or DD-MM-YYYY or DD.MM.YYYY
+  const parts = trimmed.split(/[-/.]/).map((p) => parseInt(p, 10));
+  if (parts.length === 3 && !isNaN(parts[0]) && !isNaN(parts[1]) && !isNaN(parts[2])) {
+    let d, m, y;
+    if (parts[2] >= 1000 && parts[2] <= 9999) {
+      // DD/MM/YYYY format
+      d = parts[0];
+      m = parts[1];
+      y = parts[2];
+    } else if (parts[0] >= 1000 && parts[0] <= 9999) {
+      // YYYY/MM/DD format
+      y = parts[0];
+      m = parts[1];
+      d = parts[2];
+    }
+
+    if (y && m >= 1 && m <= 12 && d >= 1 && d <= 31) {
+      const dateObj = new Date(y, m - 1, d);
+      if (
+        dateObj.getFullYear() === y &&
+        dateObj.getMonth() === m - 1 &&
+        dateObj.getDate() === d
+      ) {
+        return `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+      }
+    }
+  }
+
+  return null;
+}
 
 export default function EntryForm({ onAddSubscription }) {
   const [serviceName, setServiceName] = useState('');
   const [cost, setCost] = useState('');
   const [billingCycle, setBillingCycle] = useState('monthly');
-  const [nextRenewalDate, setNextRenewalDate] = useState('');
+  const [rawDate, setRawDate] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  const datePickerRef = useRef(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -24,8 +78,9 @@ export default function EntryForm({ onAddSubscription }) {
       return;
     }
 
-    if (!nextRenewalDate) {
-      setError('Please select the next renewal date.');
+    const isoDate = parseFlexibleDate(rawDate);
+    if (!isoDate) {
+      setError('Please enter a valid renewal date (e.g. 26/09/2026 or select from calendar).');
       return;
     }
 
@@ -35,18 +90,36 @@ export default function EntryForm({ onAddSubscription }) {
         serviceName: serviceName.trim(),
         cost: numCost,
         billingCycle,
-        nextRenewalDate,
+        nextRenewalDate: isoDate,
       });
 
       // Clear form on success
       setServiceName('');
       setCost('');
       setBillingCycle('monthly');
-      setNextRenewalDate('');
+      setRawDate('');
     } catch (err) {
       setError(err.message || 'Failed to add subscription');
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleCalendarPick = (e) => {
+    const val = e.target.value; // YYYY-MM-DD
+    if (val) {
+      const [y, m, d] = val.split('-');
+      setRawDate(`${d}/${m}/${y}`);
+    }
+  };
+
+  const openCalendarPicker = () => {
+    if (datePickerRef.current) {
+      if (typeof datePickerRef.current.showPicker === 'function') {
+        datePickerRef.current.showPicker();
+      } else {
+        datePickerRef.current.click();
+      }
     }
   };
 
@@ -139,18 +212,37 @@ export default function EntryForm({ onAddSubscription }) {
           <label htmlFor="renewal-date" className="block text-xs font-semibold text-gray-700">
             Next Renewal Date
           </label>
-          <div className="relative">
+          <div className="relative flex items-center">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-              <Calendar className="w-4 h-4" />
+              <CalendarIcon className="w-4 h-4" />
             </div>
             <input
               id="renewal-date"
-              type="date"
-              value={nextRenewalDate}
-              onChange={(e) => setNextRenewalDate(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 text-sm bg-gray-50/50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition-colors cursor-pointer"
+              type="text"
+              placeholder="DD/MM/YYYY or YYYY-MM-DD"
+              value={rawDate}
+              onChange={(e) => setRawDate(e.target.value)}
+              className="w-full pl-9 pr-10 py-2 text-sm bg-gray-50/50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition-colors"
               required
             />
+
+            {/* Hidden Native Calendar Picker Trigger */}
+            <input
+              type="date"
+              ref={datePickerRef}
+              onChange={handleCalendarPick}
+              className="sr-only"
+              tabIndex={-1}
+            />
+
+            <button
+              type="button"
+              onClick={openCalendarPicker}
+              className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-indigo-600 focus:outline-none transition-colors cursor-pointer"
+              title="Open Calendar Picker"
+            >
+              <CalendarIcon className="w-4 h-4" />
+            </button>
           </div>
         </div>
 
