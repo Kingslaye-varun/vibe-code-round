@@ -47,7 +47,8 @@
 - Known issues / TODO carried forward: Final QA and README documentation in Milestone 6.
 
 
-## Milestone 6 — Final QA + README — _pending_
-- What was built:
-- Key decisions / deviations from docs:
-- Known issues / TODO carried forward:
+## Milestone 6 — Final QA + README — Completed (2026-08-25)
+- What was built: Performed full QA review against `docs/review.md` checklist. Verified backend and frontend builds, API math, date calculations, active/paused status toggles, and README accuracy.
+- Key decisions / deviations from docs: Verified end-to-end functionality and git hygiene across all milestones.
+- Known issues / TODO carried forward: None. All milestones complete!
+
