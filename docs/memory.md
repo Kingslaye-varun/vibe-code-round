@@ -41,10 +41,11 @@
 - Known issues / TODO carried forward: Styling polish & Stitch MCP alignment in Milestone 5.
 
 
-## Milestone 5 — Styling Polish — _pending_
-- What was built:
-- Key decisions / deviations from docs:
-- Known issues / TODO carried forward:
+## Milestone 5 — Styling Polish — Completed (2026-08-25)
+- What was built: Generated Kinetic Ledger design tokens via Stitch MCP. Refined Tailwind styling, typography (Inter + tabular-nums), amber badge highlights, and glassmorphic card elevation.
+- Key decisions / deviations from docs: Aligned color palette and card hover transitions with Stitch MCP specs while preserving component architecture.
+- Known issues / TODO carried forward: Final QA and README documentation in Milestone 6.
+
 
 ## Milestone 6 — Final QA + README — _pending_
 - What was built:
